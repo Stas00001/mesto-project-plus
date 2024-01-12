@@ -15,24 +15,24 @@ const getUserId = (req: Request, res: Response, next: NextFunction) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotFoundError('Пользователь по указанному _id не найден'));
+        return next(new NotFoundError('Пользователь по указанному _id не найден'));
       }
-      next(err);
+      return next(err);
     });
 };
 
 const createUser = (req: Request, res: Response, next: NextFunction) => {
   const { name, about, avatar } = req.body;
   return User.create({ name, about, avatar })
-    .then((user) => res.send({ data: user }))
+    .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.code === 1100) {
-        next(new ConflictError('Пользователь уже существует'));
+        return next(new ConflictError('Пользователь уже существует'));
       }
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -46,12 +46,12 @@ const pathUser = (req: any, res: Response, next: NextFunction) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
       if (err.name === 'CastError') {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -61,12 +61,12 @@ const pathUserAvatar = (req: any, res: Response, next: NextFunction) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
       if (err.name === 'CastError') {
-        next(new NotFoundError('Пользователь по указанному _id не найден.'));
+        return next(new NotFoundError('Пользователь по указанному _id не найден.'));
       }
-      next(err);
+      return next(err);
     });
 };
 

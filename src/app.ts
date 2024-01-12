@@ -2,6 +2,8 @@ import express, { Request, Response, NextFunction } from 'express';
 import mongoose from 'mongoose';
 import userRouter from './routes/users';
 import cardsRouter from './routes/cards';
+import helmet from 'helmet';
+import { ExtendedRequest } from "./definitionfile/extended-request";
 
 interface IError {
   statusCode: number;
@@ -12,9 +14,10 @@ const { PORT = 3000 } = process.env;
 mongoose.connect('mongodb://localhost:27017/mestodb');
 
 const app = express();
+app.use(helmet());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req: any, res: Response, next) => {
+app.use((req: ExtendedRequest, res: Response, next: NextFunction) => {
   req.user = {
     _id: '659d98f2d6af85687dddbc83',
   };

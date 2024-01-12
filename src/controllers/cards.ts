@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import Card from '../models/сard';
 import NotFoundError from '../errors/not-found-err';
 import BadRequestError from '../errors/bad-request-error';
+import { ExtendedRequest } from "../definitionfile/extended-request";
 
 const getCards = (req: Request, res: Response, next: NextFunction) => {
   Card.find({})
@@ -9,20 +10,20 @@ const getCards = (req: Request, res: Response, next: NextFunction) => {
     .catch(next);
 };
 
-const createCard = (req: any, res: Response, next: NextFunction) => {
+const createCard = (req: ExtendedRequest, res: Response, next: NextFunction) => {
   const { name, link } = req.body;
 
-  Card.create({ name, link, owner: req.user._id })
-    .then((card) => res.send({ data: card }))
+  Card.create({ name, link, owner: req.user?._id })
+    .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
       }
-      next(err);
+      return next(err);
     });
 };
 
-const deleteCardId = (req: Request, res: Response, next: NextFunction) => {
+const deleteCardId = (req: ExtendedRequest, res: Response, next: NextFunction) => {
   Card.findOneAndDelete({ _id: req.params.cardId })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
@@ -33,10 +34,10 @@ const deleteCardId = (req: Request, res: Response, next: NextFunction) => {
     });
 };
 
-const likeCard = (req: any, res: Response, next: NextFunction) => {
+const likeCard = (req: ExtendedRequest, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $addToSet: { likes: req.user._id } },
+    { $addToSet: { likes: req.user?._id } },
     { new: true },
   )
     .then((card) => res.send({ data: card }))
@@ -51,10 +52,10 @@ const likeCard = (req: any, res: Response, next: NextFunction) => {
     });
 };
 
-const dislikeCard = (req: any, res: Response, next: NextFunction) => {
+const dislikeCard = (req: ExtendedRequest, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user._id } },
+    { $pull: { likes: req.user?._id } as any  },
     { new: true },
   )
     .then((card) => res.send({ data: card }))
