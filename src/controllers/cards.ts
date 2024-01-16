@@ -27,6 +27,9 @@ const createCard = (req: ExtendedRequest, res: Response, next: NextFunction) => 
 const deleteCardId = (req: ExtendedRequest, res: Response, next: NextFunction) => {
   Card.findById({ _id: req.params.cardId })
     .then((card) => {
+      if (!card) {
+        return next(new NotFoundError('Карточка не найдена'));
+      }
       if (card && card.owner.toString() !== req.user?._id.toString()) {
         return next(new ForbiddenError('Недостаточно прав для удаления карточки'));
       }

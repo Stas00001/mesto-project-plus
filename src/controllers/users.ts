@@ -48,9 +48,17 @@ const createUser = (req: Request, res: Response, next: NextFunction) => {
         password: hash,
       },
     ))
-    .then((user) => res.status(201).send({ data: user }))
+    .then((user) => res.status(201).send(
+      {
+        _id: user._id,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        email: user.email,
+      },
+    ))
     .catch((err) => {
-      if (err.code === 1100) {
+      if (err.code === 11000) {
         return next(new ConflictError('Пользователь уже существует'));
       }
       if (err.name === 'ValidationError') {
