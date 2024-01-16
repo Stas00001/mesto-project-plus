@@ -1,8 +1,16 @@
 import { Request, Response, NextFunction } from 'express';
+import dotenv from 'dotenv';
+import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 import User from '../models/user';
 import NotFoundError from '../errors/not-found-err';
 import ConflictError from '../errors/conflict-error';
 import BadRequestError from '../errors/bad-request-error';
+import { ExtendedRequest } from '../definitionfile/extended-request';
+
+dotenv.config();
+
+const { JWT_SECRET = 'dev-secret' } = process.env;
 
 const getUsers = (req: Request, res: Response, next: NextFunction) => {
   User.find({})
@@ -10,8 +18,9 @@ const getUsers = (req: Request, res: Response, next: NextFunction) => {
     .catch(next);
 };
 
-const getUserId = (req: Request, res: Response, next: NextFunction) => {
-  User.findById(req.params.userId)
+const getUserId = (req: ExtendedRequest, res: Response, next: NextFunction) => {
+  const id = req.params.userId ? req.params.userId : req.user?._id;
+  User.findById(id)
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === 'CastError') {
@@ -22,8 +31,23 @@ const getUserId = (req: Request, res: Response, next: NextFunction) => {
 };
 
 const createUser = (req: Request, res: Response, next: NextFunction) => {
-  const { name, about, avatar } = req.body;
-  return User.create({ name, about, avatar })
+  const {
+    name,
+    about,
+    avatar,
+    email,
+    password,
+  } = req.body;
+  return bcrypt.hash(password, 10)
+    .then((hash: string) => User.create(
+      {
+        name,
+        about,
+        avatar,
+        email,
+        password: hash,
+      },
+    ))
     .then((user) => res.status(201).send({ data: user }))
     .catch((err) => {
       if (err.code === 1100) {
@@ -70,10 +94,29 @@ const pathUserAvatar = (req: any, res: Response, next: NextFunction) => {
     });
 };
 
+const login = (req: Request, res: Response, next: NextFunction) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      if (JWT_SECRET) {
+        const token = jwt.sign({ _id: user._id }, JWT_SECRET, { expiresIn: '7d' });
+        res.cookie('jwt', token, {
+          maxAge: 3600000 * 24 * 7,
+          httpOnly: true,
+          sameSite: true,
+        });
+        res.send({ token });
+      }
+    })
+    .catch(next);
+};
+
 export {
   getUsers,
   getUserId,
   createUser,
   pathUser,
   pathUserAvatar,
+  login,
 };

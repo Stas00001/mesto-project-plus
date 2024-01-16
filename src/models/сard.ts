@@ -1,7 +1,7 @@
-import mongoose from 'mongoose';
+import mongoose, { Document } from 'mongoose';
 import validator from 'validator';
 
-export interface ICard extends mongoose.Document {
+export interface ICard extends Document {
   name: string;
   link: string;
   owner: mongoose.ObjectId;
@@ -9,7 +9,7 @@ export interface ICard extends mongoose.Document {
   createdAt: Date;
 }
 
-const userSchema = new mongoose.Schema<ICard>({
+const cardSchema = new mongoose.Schema<ICard>({
   name: {
     type: String,
     minlength: [2, 'Минимальная длина поля "name" - 2'],
@@ -22,7 +22,7 @@ const userSchema = new mongoose.Schema<ICard>({
     validate: {
       validator: (v: string) => validator.isURL(v),
       message: 'Некорректный URL',
-    }
+    },
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
@@ -40,4 +40,4 @@ const userSchema = new mongoose.Schema<ICard>({
   },
 }, { versionKey: false });
 
-export default mongoose.model<ICard>('card', userSchema);
+export default mongoose.model<ICard>('card', cardSchema);

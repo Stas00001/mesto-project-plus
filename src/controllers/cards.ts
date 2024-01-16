@@ -2,7 +2,8 @@ import { Request, Response, NextFunction } from 'express';
 import Card from '../models/сard';
 import NotFoundError from '../errors/not-found-err';
 import BadRequestError from '../errors/bad-request-error';
-import { ExtendedRequest } from "../definitionfile/extended-request";
+import { ExtendedRequest } from '../definitionfile/extended-request';
+import ForbiddenError from '../errors/forbidden-error';
 
 const getCards = (req: Request, res: Response, next: NextFunction) => {
   Card.find({})
@@ -17,20 +18,29 @@ const createCard = (req: ExtendedRequest, res: Response, next: NextFunction) => 
     .then((card) => res.status(201).send({ data: card }))
     .catch((err) => {
       if (err.name === 'ValidationError') {
-        return next(new BadRequestError('Переданы некорректные данные при создании пользователя'));
+        return next(new BadRequestError('Переданы некорректные данные при создании  карточки'));
       }
       return next(err);
     });
 };
 
 const deleteCardId = (req: ExtendedRequest, res: Response, next: NextFunction) => {
-  Card.findOneAndDelete({ _id: req.params.cardId })
-    .then((card) => res.send({ data: card }))
+  Card.findById({ _id: req.params.cardId })
+    .then((card) => {
+      if (card && card.owner.toString() !== req.user?._id.toString()) {
+        return next(new ForbiddenError('Недостаточно прав для удаления карточки'));
+      }
+      return card?.deleteOne({ _id: req.params.cardId })
+        .then(() => {
+          res.send({ message: 'Карточка удалена' });
+        })
+        .catch(next);
+    })
     .catch((err) => {
       if (err.name === 'CastError') {
-        next(new NotFoundError('Карточка с указанным _id не найдена'));
+        return next(new NotFoundError('Карточка с указанным _id не найдена'));
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -55,7 +65,7 @@ const likeCard = (req: ExtendedRequest, res: Response, next: NextFunction) => {
 const dislikeCard = (req: ExtendedRequest, res: Response, next: NextFunction) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
-    { $pull: { likes: req.user?._id } as any  },
+    { $pull: { likes: req.user?._id } as any },
     { new: true },
   )
     .then((card) => res.send({ data: card }))
