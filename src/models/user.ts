@@ -48,12 +48,12 @@ const userSchema = new mongoose.Schema<IUser, UserModel>({
   },
   email: {
     type: String,
-    unique: true,
+    required: [true, 'Поле "email" должно быть заполнено'],
     validate: {
       validator: (v: string) => validator.isEmail(v),
       message: 'Некорректный Email',
     },
-    required: [true, 'Поле "email" должно быть заполнено'],
+    unique: true,
   },
 }, { versionKey: false });
 
