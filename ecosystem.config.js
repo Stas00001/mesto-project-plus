@@ -5,7 +5,7 @@ const {
   DEPLOY_HOST,
   DEPLOY_PATH,
   DEPLOY_REF = 'origin/main',
-  KEY_PATH,
+  KEY_PATCH,
 } = process.env;
 module.exports = {
   apps: [
@@ -18,7 +18,7 @@ module.exports = {
     production: {
       user: DEPLOY_USER,
       host: DEPLOY_HOST,
-      key: KEY_PATH,
+      key: KEY_PATCH,
       ref: DEPLOY_REF,
       repo: 'https://github.com/Stas00001/mesto-project-plus.git',
       path: DEPLOY_PATH,
