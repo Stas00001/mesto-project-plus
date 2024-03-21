@@ -1,13 +1,18 @@
 require('dotenv').config();
 
 const {
-  DEPLOY_USER, DEPLOY_HOST, DEPLOY_PATH, DEPLOY_REF = 'origin/main',
+  DEPLOY_USER,
+  DEPLOY_HOST,
+  DEPLOY_PATH,
+  DEPLOY_REF = 'origin/main',
 } = process.env;
 module.exports = {
-  apps: [{
-    name: 'api-service',
-    script: './src/app.ts',
-  }],
+  apps: [
+    {
+      name: 'api-service',
+      script: './src/app.ts',
+    },
+  ],
   deploy: {
     production: {
       user: DEPLOY_USER,
