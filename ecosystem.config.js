@@ -24,7 +24,7 @@ module.exports = {
       path: DEPLOY_PATH,
       ssh_options: 'ForwardAgent=yes',
       // 'pre-deploy': `scp ./.env ${DEPLOY_USER}@${DEPLOY_HOST}:${DEPLOY_PATH}`,
-      'post-deploy': 'npm i && npm run start',
+      'post-deploy': 'npm i && npm run build',
     },
   },
 };
